@@ -1,3 +1,4 @@
 c
 .vscode
-
+valgrind-out
+infer-out
