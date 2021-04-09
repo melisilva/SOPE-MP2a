@@ -16,7 +16,7 @@ typedef enum oper {
     FAILD
 } oper_t;
 
-typedef struct message{
+typedef struct message {
     int i;
     int t;
     pid_t pid;
@@ -24,10 +24,9 @@ typedef struct message{
     int res;
 } message_t;
 
-void message_builder(message_t *message,int t,int i, int res);
-
-
+void message_builder(message_t *message,int i,int t, int res);
 int log_operation(message_t *message, oper_t oper);
+
 
 
 #endif  // UTILS_H_

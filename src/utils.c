@@ -6,14 +6,13 @@
 #include <pthread.h>
 
 
-
 static char * OPERATIONS[] = {"IWANT", "RECVD", "TSKEX", "TSKDN", "GOTRS", "2LATE", "CLOSD", "GAVUP", "FAILD"};
 
 
 void message_builder(message_t *message, int i,int t, int res) {
 
     message->i = i;
-    message->t=t;
+    message->t = t;
     message->pid = getpid();
     message->tid = pthread_self();
     message->res=res;
