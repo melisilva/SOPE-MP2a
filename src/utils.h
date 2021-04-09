@@ -24,10 +24,10 @@ typedef struct message{
     int res;
 } message_t;
 
-int message_builder(message_t *message,int t,int i, int res);
+void message_builder(message_t *message,int t,int i, int res);
 
 
-void log_operation(message_t *message, oper_t oper);
+int log_operation(message_t *message, oper_t oper);
 
 
 #endif  // UTILS_H_
