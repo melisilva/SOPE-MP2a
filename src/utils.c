@@ -9,12 +9,11 @@ static char * OPERATIONS[] = {"IWANT", "RECVD", "TSKEX", "TSKDN", "GOTRS", "2LAT
 
 
 void message_builder(message_t *message, int i, int t, int res)  {
-
     message->i = i;
     message->t = t;
     message->pid = getpid();
     message->tid = pthread_self();
-    message->res=res;
+    message->res = res;
 }
 
 int log_operation(message_t *message, oper_t oper) {

@@ -35,10 +35,8 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         }
     }
 
-
     return 0;
 }
-
 
 int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo) {
     if (argc != 4) {
@@ -96,5 +94,6 @@ int main(int argc, char *argv[]) {
     }
 
     close(fd_public_fifo);
+
     return 0;
 }
