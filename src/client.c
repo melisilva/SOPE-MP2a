@@ -1,12 +1,16 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "log.h"
+#include "utils.h"
+
 
 
 int main() {
     
     //sample
-    log_operation(27, 2, -1, FAILD);
+    message_t* m_1 = (message_t*) malloc(sizeof(message_t));
+    message_builder(m_1,27,2,-1);
+    log_operation(m_1,FAILD);
 
     return 0;
 }
