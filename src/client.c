@@ -3,7 +3,20 @@
 #define FIFONAME_SIZE 200
 int i;
 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER; //mutex controlling i access
+
 void* send_request(void *arg){
+    char* fifoname=(char*)arg;
+    int fd=open(fifoname,O_WRONLY); //public fifo that we are going to use to send request
+    if (fd == -1) 
+    {
+        perror("Can't open public fifo\n");
+        return NULL;
+    }
+
+
+
+
 }
 
 int main(int argc, char * argv[]) {

@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 typedef enum oper {
     IWANT,
