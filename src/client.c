@@ -78,7 +78,12 @@ int main(int argc, char *argv[]) {
 
     // TODO maybe create a function to init all the mutex we will need
     // and other to destroy them
-    if (pthread_mutex_init(&LOCK_IDENTIFIER, NULL) != 0) { // TODO check if mutexattr should be NULL
+    if (pthread_mutex_init(&LOCK_IDENTIFIER, NULL) != 0) { // TODO check if mutexattr should not be NULL!!
+        perror("");
+        return 1;    
+    }
+
+    if (pthread_mutex_init(&LOCK_PUBLIC_FIFO, NULL) != 0) { // TODO check if mutexattr should not be NULL!!
         perror("");
         return 1;    
     }
@@ -89,6 +94,11 @@ int main(int argc, char *argv[]) {
 
 
     if (pthread_mutex_destroy(&LOCK_IDENTIFIER) != 0) {
+        perror("");
+        return 1;    
+    }
+
+    if (pthread_mutex_destroy(&LOCK_PUBLIC_FIFO) != 0) {
         perror("");
         return 1;    
     }

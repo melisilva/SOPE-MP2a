@@ -6,7 +6,8 @@
 #include <unistd.h>
 
 #include "./utils.h"
-/* Commented because it hadd errors
+// Commented because it had errors
+/* 
 static bool send = false;
 extern FILE* fd;
 

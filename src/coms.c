@@ -1,4 +1,6 @@
 #include "./coms.h"
+
+// Commented because it had errors
 /*
 FILE *fd;
 
