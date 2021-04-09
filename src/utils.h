@@ -1,12 +1,9 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#define MILI_TO_MICRO 1000
+
 #include <pthread.h>
-#include <time.h>
 
 typedef enum oper {
     IWANT,
@@ -28,9 +25,9 @@ typedef struct message {
     int res;
 } message_t;
 
-void message_builder(message_t *message,int i,int t, int res);
-int log_operation(message_t *message, oper_t oper);
+void message_builder(message_t *message, int i, int t,int res);
 
+int log_operation(message_t *message, oper_t oper);
 
 
 #endif  // UTILS_H_
