@@ -1,6 +1,6 @@
 #include "coms.h"
 
-typedef DUMMY_MSG;
+FILE *fd;
 
 int send(char* FIFO){
     fd = open(FIFO, O_WRONLY);
@@ -15,7 +15,6 @@ int send(char* FIFO){
     close(fd);
 }
 
-//Alternate version of sendReceive because GeeksForGeeks had both xD
 int receive(char* FIFO){
     //Receiving == reading.
     fd = open(FIFO, O_RDONLY);

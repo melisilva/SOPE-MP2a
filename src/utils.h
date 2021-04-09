@@ -28,13 +28,8 @@ typedef struct message {
     int res;
 } message_t;
 
-void message_builder(message_t *message,int i,int t, int res);
+void message_builder(message_t *message,int i, int t, int res);
 int log_operation(message_t *message, oper_t oper);
 
-/**
- * TO DO
- -> Function that sets oper for log_operation;
- -> Funct
- */
 
 #endif  // UTILS_H_
