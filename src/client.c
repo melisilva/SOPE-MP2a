@@ -35,10 +35,6 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         return 1;  
        }*/
 
-       
-
-        
-
         //wait x ms to send another request
         if (usleep(( 100+rand()%10)*1000) == -1) { 
             /*tried with rand()%10 +1 but the intervals where very lil

@@ -36,8 +36,9 @@ int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message) {
 
     if(n<0){
         perror("Couldn't write to public FIFO\n");
-        return 1; //?
+        return 1; 
     }
+
     if (pthread_mutex_unlock(&LOCK_PUBLIC_FIFO) != 0)
         return 1;
 
@@ -49,44 +50,63 @@ void* thread_entry(void *arg) {
     int fd_public_fifo = *(int *)arg;
     
     int i;
-    get_i(&i);
+    if(get_i(&i)<0)
+    {
+        free(arg);
+        return NULL;
+    }
     int task_weight = (rand() % 9) + 1;
 
-        
     char *private_fifo_path = NULL;
     int path_size = snprintf(private_fifo_path, 0, "/tmp/%d.%lu", getpid(), pthread_self()) + 1;
+
+    if(path_size==-1){
+        free(arg);
+        return NULL;
+    }
 
     private_fifo_path = malloc(path_size);
 
     if (snprintf(private_fifo_path, path_size, "/tmp/%d.%lu", getpid(), pthread_self()) < 0 )
     {
         free(arg);
+        free(private_fifo_path);
         return NULL;
     }
 
     if (mkfifo(private_fifo_path, 0660) != 0) // TODO check the right perms to be "private"
     {
         free(arg);
+        free(private_fifo_path);
         return NULL;
     }
     
     //printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
-    printf("%s\n", private_fifo_path); // debug
+    //printf("%s\n", private_fifo_path); // debug
 
     int fd_private_fifo = 0;
     message_t message;
     message_builder(&message, i, task_weight, -1); // Client res is allways -1
+  
+    if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0){
+        free(arg);
+        free(private_fifo_path);
+        return NULL;
+    }
 
     if (log_operation(&message, IWANT) != 0)
+    {
+        free(arg);
+        free(private_fifo_path);
         return NULL;
-    
-    if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0)
-        return NULL;
+    }
 
     //printf("fg\n");
 
     if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1){
         printf("DIDN'T OPEN\n");
+        free(arg);
+        free(private_fifo_path);
         return NULL;
     }
     
@@ -97,26 +117,49 @@ void* thread_entry(void *arg) {
     
     if(n<0){
         perror("Couldn't read private FIFO");
+        free(arg);
+        free(private_fifo_path);
+        close(fd_private_fifo);
+        unlink(private_fifo_path);
         return NULL;
     }    
     else if(n>0){
         if(message_received.tskres!=-1){ //server's res==-1 if it's closed
             if (log_operation(&message, GOTRS) != 0) // check if this is the right message to write
-               return NULL;
+            {
+                free(arg);
+                free(private_fifo_path);
+                close(fd_private_fifo);
+                unlink(private_fifo_path);
+                return NULL;
+            }   
         }
         else{ //we need to stop making new request threads
-             closed=1;
-             if (log_operation(&message, CLOSD) != 0)
-               return NULL;
+            closed=1;
+            if (log_operation(&message, CLOSD) != 0)
+            {
+                free(arg);
+                free(private_fifo_path);
+                close(fd_private_fifo);
+                unlink(private_fifo_path);
+                return NULL;
+            }   
         }
     }
     else{
-         if (log_operation(&message, GAVUP) != 0) // check if this is the right message to write
-               return NULL;
+        if (log_operation(&message, GAVUP) != 0) // check if this is the right message to write
+        {
+            free(arg);
+            free(private_fifo_path);
+            close(fd_private_fifo);
+            unlink(private_fifo_path);
+            return NULL;
+        }      
     }
 
     close(fd_private_fifo);
     unlink(private_fifo_path);
     free(private_fifo_path);
+    free(arg);
     return NULL;
 }
