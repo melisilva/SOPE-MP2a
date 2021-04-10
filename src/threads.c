@@ -73,6 +73,17 @@ void* thread_entry(void *arg) {
     printf("%s\n", private_fifo_path); // debug
 
     int fd_private_fifo = 0;
+    message_t message;
+    message_builder(&message, i, task_weight, -1); // Client res is allways -1
+
+    if (log_operation(&message, IWANT) != 0)
+        return NULL;
+    
+    if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0)
+        return NULL;
+
+    //printf("fg\n");
+
     if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1){
         printf("DIDN'T OPEN\n");
         return NULL;
@@ -81,12 +92,7 @@ void* thread_entry(void *arg) {
     printf("OPENED.\n");
     message_t message_received;
 
-    if (read(fd_private_fifo, &message_received, sizeof(message_t)) == -1){
-        printf("DIDN'T READ\n");
-        return NULL;
-    }
-
-    printf("READ\n");
+    int n=read(fd_private_fifo, &message_received, sizeof(message_t));
     
     if(n<0){
         perror("Couldn't read private FIFO");
