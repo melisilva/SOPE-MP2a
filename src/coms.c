@@ -1,5 +1,7 @@
-#include "coms.h"
+#include "./coms.h"
 
+// Commented because it had errors
+/*
 FILE *fd;
 
 int send(char* FIFO){
@@ -22,3 +24,5 @@ int receive(char* FIFO){
     //LOG: RECVD
     close(fd);
 }
+
+*/
