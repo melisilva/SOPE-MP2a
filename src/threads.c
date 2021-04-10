@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "./client.h"
 
 
 pthread_mutex_t LOCK_IDENTIFIER;
