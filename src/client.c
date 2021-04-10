@@ -9,11 +9,12 @@
 
 #include "./utils.h"
 #include "./threads.h"
+#include "./client.h"
 
 
 int main_cycle(time_t end_time, int fd_public_fifo) {
 
-    while (time(NULL) < end_time) {
+    while (time(NULL) < end_time || !closed) {
         pthread_t tid;
         //should we have mutex here?
    /*if (pthread_mutex_lock(&LOCK_PUBLIC_FIFO) != 0) { // TODO check if mutexattr should not be NULL!!
@@ -25,16 +26,17 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
             return 1;
         }
 
-        /*if(pthread_detach(tid)!=0) { // TODO with this uncommented it's called allways with the same thread
+        if(pthread_detach(tid)!=0) { // TODO with this uncommented it's called allways with the same thread
                                        // maybe save all the tid an after this while loop, loop over the tid with .join()
             return 1;
-        }*/
+        }
 
        /*if (pthread_mutex_unlock(&LOCK_PUBLIC_FIFO) != 0) {
         perror("");
         return 1;  
        }*/
-    
+
+       
 
         
 

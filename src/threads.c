@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "./client.h"
+
 
 pthread_mutex_t LOCK_IDENTIFIER;
 pthread_mutex_t LOCK_PUBLIC_FIFO;
@@ -99,12 +101,13 @@ void* thread_entry(void *arg) {
         return NULL;
     }    
     else if(n>0){
-        if(message_received.tskres!=-1){
+        if(message_received.tskres!=-1){ //server's res==-1 if it's closed
             if (log_operation(&message, GOTRS) != 0) // check if this is the right message to write
                return NULL;
         }
-        else{
-             if (log_operation(&message, CLOSD) != 0) // check if this is the right message to write
+        else{ //we need to stop making new request threads
+             closed=1;
+             if (log_operation(&message, CLOSD) != 0)
                return NULL;
         }
     }

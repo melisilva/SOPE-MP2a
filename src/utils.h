@@ -6,6 +6,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+int closed;
+
 typedef enum oper {
     IWANT,
     RECVD,

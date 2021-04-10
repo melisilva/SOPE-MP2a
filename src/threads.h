@@ -7,7 +7,7 @@
 extern pthread_mutex_t LOCK_IDENTIFIER;
 extern pthread_mutex_t LOCK_PUBLIC_FIFO;
 
-
+int closed;
 int get_i(int *i);
 
 void* thread_entry(void *arg);
