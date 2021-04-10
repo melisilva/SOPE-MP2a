@@ -1,5 +1,5 @@
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef SRC_UTILS_H_
+#define SRC_UTILS_H_
 
 #include <pthread.h>
 #include <time.h>
@@ -21,11 +21,11 @@ typedef enum oper {
 } oper_t;
 
 typedef struct message {
-    int rid; //request id---> i
+    int rid;  // request id---> i
     pid_t pid;
     pthread_t tid;
-    int tskload; //task load--->t
-    int tskres; //task result-->res
+    int tskload;  // task load--->t
+    int tskres;  // task result-->res
 } message_t;
 
 
@@ -33,4 +33,4 @@ void message_builder(message_t *message, int i, int t, int res);
 
 int log_operation(message_t *message, oper_t oper);
 
-#endif  // UTILS_H_
+#endif  // SRC_UTILS_H_

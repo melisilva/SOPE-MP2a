@@ -1,5 +1,5 @@
-#ifndef THREADS_H_
-#define THREADS_H_
+#ifndef SRC_THREADS_H_
+#define SRC_THREADS_H_
 
 #include <pthread.h>
 #include "./utils.h"
@@ -14,4 +14,4 @@ void* thread_entry(void *arg);
 int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message);
 
 
-#endif  // THREADS_H_
+#endif  // SRC_THREADS_H_
