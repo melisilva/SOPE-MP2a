@@ -49,7 +49,7 @@ void* thread_entry(void *arg) {
     
     int i;
     get_i(&i);
-    int task_weight = 1 + rand() % 9;
+    int task_weight = (rand() % 9) + 1;
 
         
     char *private_fifo_path = NULL;
@@ -71,32 +71,22 @@ void* thread_entry(void *arg) {
     
     //printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
     printf("%s\n", private_fifo_path); // debug
-    int fd_private_fifo;
 
-    message_t message;
-    message_builder(&message, i, task_weight, -1); // Client res is allways -1
-
-    if (log_operation(&message, IWANT) != 0)
-        return NULL;
-    
-    if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0)
-        return NULL;
-
-    //printf("fg\n");
-
+    int fd_private_fifo = 0;
     if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1){
-        //printf("error opening\n");
+        printf("DIDN'T OPEN\n");
+        return NULL;
+    }
+    
+    printf("OPENED.\n");
+    message_t message_received;
+
+    if (read(fd_private_fifo, &message_received, sizeof(message_t)) == -1){
+        printf("DIDN'T READ\n");
         return NULL;
     }
 
-   // printf("%d\n",fd_private_fifo);
-
-    message_t message_received;
-    //printf("hello\n");
-
-    int n=read(fd_private_fifo, &message_received, sizeof(message_t));
-    //printf("hi\n");
-
+    printf("READ\n");
     
     if(n<0){
         perror("Couldn't read private FIFO");
@@ -116,7 +106,6 @@ void* thread_entry(void *arg) {
          if (log_operation(&message, GAVUP) != 0) // check if this is the right message to write
                return NULL;
     }
-    
 
     close(fd_private_fifo);
     unlink(private_fifo_path);

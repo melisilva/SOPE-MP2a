@@ -74,6 +74,9 @@ int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo) {
         fprintf(stderr, "No public pipe found with given path.\n");
         return 1;
     }
+    //close(*fd_public_fifo);
+    
+
 
     return 0;
 }
