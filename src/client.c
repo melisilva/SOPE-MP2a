@@ -39,7 +39,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         
 
         //wait x ms to send another request
-        if (usleep(( 60000)*1000) == -1) { 
+        if (usleep(( 100+rand()%10)*1000) == -1) { 
             /*tried with rand()%10 +1 but the intervals where very lil
                                                                         for nsecs=2-->rand()%10 + 1 produced 169 requests 
                                                                         for nsecs=2-->10+rand()%5 produced 106 requests*/
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 
     // TODO maybe create a function to init all the mutex we will need
     // and other to destroy them
-    if (pthread_mutex_init(&LOCK_IDENTIFIER, NULL) != 0) { // TODO check if mutexattr should not be NULL!!
+    /*if (pthread_mutex_init(&LOCK_IDENTIFIER, NULL) != 0) { // TODO check if mutexattr should not be NULL!!
         perror("");
         return 1;    
     }
@@ -103,14 +103,14 @@ int main(int argc, char *argv[]) {
     if (pthread_mutex_init(&LOCK_PUBLIC_FIFO, NULL) != 0) { // TODO check if mutexattr should not be NULL!!
         perror("");
         return 1;    
-    }
+    }*/
 
     time_t end_time = start_time + nsecs;
     if (main_cycle(end_time, fd_public_fifo) != 0)
         return 1;
 
 
-    if (pthread_mutex_destroy(&LOCK_IDENTIFIER) != 0) {
+    /*if (pthread_mutex_destroy(&LOCK_IDENTIFIER) != 0) {
         perror("");
         return 1;    
     }
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
     if (pthread_mutex_destroy(&LOCK_PUBLIC_FIFO) != 0) {
         perror("");
         return 1;    
-    }
+    }*/
 
     close(fd_public_fifo);
     printf("we're closed\n");

@@ -9,15 +9,15 @@ static char * OPERATIONS[] = {"IWANT", "RECVD", "TSKEX", "TSKDN", "GOTRS", "2LAT
 
 
 void message_builder(message_t *message, int i, int t, int res)  {
-    message->i = i;
-    message->t = t;
+    message->rid = i;
+    message->tskload = t;
     message->pid = getpid();
     message->tid = pthread_self();
-    message->res = res;
+    message->tskres = res;
 }
 
 int log_operation(message_t *message, oper_t oper) {
-    if (printf("%ld ; %d ; %d ; %d ; %ld ; %d ; %s\n", time(NULL), message->i, message->t, message->pid, message->tid, message->res, OPERATIONS[oper]) < 0) {
+    if (printf("%ld ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL), message->rid, message->tskload, message->pid, message->tid, message->tskres, OPERATIONS[oper]) < 0) {
         return 1;
     }
 

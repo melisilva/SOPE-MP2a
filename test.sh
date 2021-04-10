@@ -3,7 +3,7 @@
 set -m
 
 FIFO_NAME=/tmp/foo
-TIME=60
+TIME=1
 BUF_SIZE=1
 
 

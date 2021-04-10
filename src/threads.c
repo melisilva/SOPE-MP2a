@@ -53,11 +53,11 @@ void* thread_entry(void *arg) {
 
         
     char *private_fifo_path = NULL;
-    int path_size = snprintf(private_fifo_path, 0, "/tmp/%d.%ld", getpid(), pthread_self()) + 1;
+    int path_size = snprintf(private_fifo_path, 0, "/tmp/%d.%lu", getpid(), pthread_self()) + 1;
 
     private_fifo_path = malloc(path_size);
 
-    if (snprintf(private_fifo_path, path_size, "/tmp/%d.%ld", getpid(), pthread_self()) < 0 )
+    if (snprintf(private_fifo_path, path_size, "/tmp/%d.%lu", getpid(), pthread_self()) < 0 )
     {
         free(arg);
         return NULL;
@@ -99,7 +99,7 @@ void* thread_entry(void *arg) {
         return NULL;
     }    
     else if(n>0){
-        if(message_received.res!=-1){
+        if(message_received.tskres!=-1){
             if (log_operation(&message, GOTRS) != 0) // check if this is the right message to write
                return NULL;
         }

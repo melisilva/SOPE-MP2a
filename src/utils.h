@@ -19,11 +19,11 @@ typedef enum oper {
 } oper_t;
 
 typedef struct message {
-    int i;
-    int t;
+    int rid; //request id---> i
     pid_t pid;
     pthread_t tid;
-    int res;
+    int tskload; //task load--->t
+    int tskres; //task result-->res
 } message_t;
 
 
