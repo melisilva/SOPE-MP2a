@@ -45,7 +45,7 @@ void* thread_entry(void *arg) {
     
     int i;
     get_i(&i);
-    int task_weight = 1 + rand() % 9;
+    int task_weight = (rand() % 9) + 1;
 
     message_t message;
     message_builder(&message, i, task_weight, -1); // Client res is allways -1
@@ -64,22 +64,34 @@ void* thread_entry(void *arg) {
     if (snprintf(private_fifo_path, path_size, "/tmp/%d.%ld", message.pid, message.tid) < 0 )
         return NULL;
 
-    if (mkfifo(private_fifo_path, 0600) != 0) // TODO check the right perms to be "private"
-        return NULL;
     
+    if (mkfifoat(fd_private_fifo, private_fifo_path, 0600) != 0){ // TODO check the right perms to be "private"
+        return NULL;
+    }
     //printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
     printf("%s\n", private_fifo_path); // debug
-    int fd_private_fifo;
-    if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1)
+    int fd_private_fifo = 0;
+    if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1){
+        printf("DIDN'T OPEN\n");
         return NULL;
-
+    }
+    
+    printf("OPENED.\n");
     message_t message_received;
 
-    if (read(fd_private_fifo, &message_received, sizeof(message_t)) == -1)
+    if (read(fd_private_fifo, &message_received, sizeof(message_t)) == -1){
+        printf("DIDN'T READ\n");
         return NULL;
-    
-    if (log_operation(&message, GOTRS) != 0) // check if this is the reight message to write
+    }
+
+    printf("READ\n");
+
+    if (log_operation(&message, GOTRS) != 0){ // check if this is the reight message to write
+        printf("NOT LOGGED\n");
         return NULL;
+    }
+
+    printf("LOGGED\n");
 
     close(fd_private_fifo);
     free(private_fifo_path);
