@@ -53,7 +53,6 @@ void* thread_entry(void *arg) {
 
     int i;
     if (get_i(&i) < 0) {
-        free(arg);
         return NULL;
     }
 
@@ -63,7 +62,6 @@ void* thread_entry(void *arg) {
                                 getpid(), pthread_self()) + 1;
 
     if (path_size == -1) {
-        free(arg);
         return NULL;
     }
 
@@ -71,14 +69,12 @@ void* thread_entry(void *arg) {
 
     if (snprintf(private_fifo_path, path_size, "/tmp/%d.%lu",
         getpid(), pthread_self()) < 0 ) {
-        free(arg);
         free(private_fifo_path);
         return NULL;
     }
 
     if (mkfifo(private_fifo_path, 0660) != 0) {
         // TODO check the right perms to be "private"
-        free(arg);
         free(private_fifo_path);
         return NULL;
     }
@@ -92,13 +88,11 @@ void* thread_entry(void *arg) {
     // Client res is always -1
 
     if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0) {
-        free(arg);
         free(private_fifo_path);
         return NULL;
     }
 
     if (log_operation(&message, IWANT) != 0) {
-        free(arg);
         free(private_fifo_path);
         return NULL;
     }
@@ -107,7 +101,6 @@ void* thread_entry(void *arg) {
 
     if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1) {
         printf("DIDN'T OPEN\n");
-        free(arg);
         free(private_fifo_path);
         return NULL;
     }
@@ -119,7 +112,6 @@ void* thread_entry(void *arg) {
 
     if (n < 0) {
         perror("Couldn't read private FIFO");
-        free(arg);
         free(private_fifo_path);
         close(fd_private_fifo);
         unlink(private_fifo_path);
@@ -129,7 +121,6 @@ void* thread_entry(void *arg) {
             // server's res==-1 if it's closed
             if (log_operation(&message, GOTRS) != 0) {
                 // check if this is the right message to write
-                free(arg);
                 free(private_fifo_path);
                 close(fd_private_fifo);
                 unlink(private_fifo_path);
@@ -139,7 +130,6 @@ void* thread_entry(void *arg) {
             // we need to stop making new request threads
             closed = 1;
             if (log_operation(&message, CLOSD) != 0) {
-                free(arg);
                 free(private_fifo_path);
                 close(fd_private_fifo);
                 unlink(private_fifo_path);
@@ -149,7 +139,6 @@ void* thread_entry(void *arg) {
     } else {
         if (log_operation(&message, GAVUP) != 0) {
             // check if this is the right message to write
-            free(arg);
             free(private_fifo_path);
             close(fd_private_fifo);
             unlink(private_fifo_path);
@@ -160,6 +149,5 @@ void* thread_entry(void *arg) {
     close(fd_private_fifo);
     unlink(private_fifo_path);
     free(private_fifo_path);
-    free(arg);
     return NULL;
 }
