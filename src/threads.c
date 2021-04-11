@@ -6,8 +6,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "src/threads.h"
-#include "src/utils.h"
+#include "./threads.h"
+#include "./utils.h"
 
 pthread_mutex_t LOCK_IDENTIFIER;
 pthread_mutex_t LOCK_PUBLIC_FIFO;
@@ -89,7 +89,7 @@ void* thread_entry(void *arg) {
     int fd_private_fifo = 0;
     message_t message;
     message_builder(&message, i, task_weight, -1);
-    // Client res is allways -1
+    // Client res is always -1
 
     if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0) {
         free(arg);
