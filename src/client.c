@@ -27,6 +27,7 @@ int get_i(int *res) {
         return 1;
     }
 
+    free(tids);
     return 0;
 }
 

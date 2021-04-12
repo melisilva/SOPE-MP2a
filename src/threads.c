@@ -159,27 +159,27 @@ void* thread_entry(void *arg) {
 
     if (n < 0) {
         perror("Couldn't read private FIFO");
-        free(private_fifo_path);
         close(fd_private_fifo);
         unlink(private_fifo_path);
+        free(private_fifo_path);
         return NULL;
     } else if (n > 0) {
         if (message_received.tskres != -1) {
             // server's res==-1 if it's closed
             if (log_operation(&message, GOTRS) != 0) {
                 // check if this is the right message to write
-                free(private_fifo_path);
                 close(fd_private_fifo);
                 unlink(private_fifo_path);
+                free(private_fifo_path);
                 return NULL;
             }
         } else {
             // we need to stop making new request threads
             closed = 1;
             if (log_operation(&message, CLOSD) != 0) {
-                free(private_fifo_path);
                 close(fd_private_fifo);
                 unlink(private_fifo_path);
+                free(private_fifo_path);
                 return NULL;
             }
         }
