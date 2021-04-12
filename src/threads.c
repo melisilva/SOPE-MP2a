@@ -35,7 +35,7 @@ int get_rand(int *res) {
         return 1;
     }
 
-    *res = rand_r(time(NULL));
+    *res = rand();
 
     if (pthread_mutex_unlock(&LOCK_RAND) != 0) {
         return 1;
