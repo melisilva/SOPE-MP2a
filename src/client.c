@@ -12,15 +12,23 @@
 
 
 int main_cycle(time_t end_time, int fd_public_fifo) {
+    size_t size_tids = 1000;
+    pthread_t *tids = malloc(size_tids);
+    size_t i = 0;
     while (time(NULL) < end_time && !closed) {
-        pthread_t tid;
         // should we have mutex here? // I think not because this code is only run by the main thread
    /*if (pthread_mutex_lock(&LOCK_PUBLIC_FIFO) != 0) { // TODO check if mutexattr should not be NULL!!
         perror("");
         return 1;    
     }*/
+        
+        if (i == size_tids) {
+            size_tids += 100;
+            tids = realloc(tids, size_tids);
+        }
+
         // create thread
-        if (pthread_create(&tid, NULL, thread_entry,
+        if (pthread_create(&tids[i++], NULL, thread_entry,
                             (void*)&fd_public_fifo) != 0) {
             return 1;
         }
@@ -48,6 +56,23 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
             return 1;
         }
     }
+
+    if (time(NULL) >= end_time) { /* "após o prazo de funcionamento especificado pelo utilizador, o Cliente deve terminar
+                                      a execução fazendo com que os threads em espera de resposta desistam mas não
+                                      sem antes garantir que todos os recursos tomados ao sistema são libertados."
+                                    */
+        for (size_t j = 0; j < i; j++) {
+            pthread_cancel(tids[j]);
+        }
+    }
+    
+    // needs to call _join also for the canceled because: "Cancel THREAD immediately or at the next possibility."
+    for (size_t j = 0; j < i; j++) {
+        if (pthread_join(tids[j], NULL) != 0) {
+            // maybe better not to return on error since all threads must join
+        }
+    }
+
     return 0;
 }
 
@@ -128,7 +153,7 @@ int main(int argc, char *argv[]) {
     time_t start_time = time(NULL);
     closed=0;
 
-    RAND_R_SEED = time(NULL);
+    RAND_R_SEED = start_time;
     int nsecs;
     int fd_public_fifo;
 
