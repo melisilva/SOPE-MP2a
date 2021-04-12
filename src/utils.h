@@ -1,10 +1,12 @@
 #ifndef SRC_UTILS_H_
 #define SRC_UTILS_H_
 
-#include <pthread.h>
-#include <time.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <time.h>
 
 
 typedef enum oper {

@@ -1,10 +1,5 @@
 #include "./utils.h"
 
-#include <stdio.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <time.h>
-
 static char * OPERATIONS[] = {"IWANT", "RECVD", "TSKEX", "TSKDN",
                               "GOTRS", "2LATE", "CLOSD", "GAVUP",
                               "FAILD"};
@@ -18,7 +13,7 @@ void message_builder(message_t *message, int i, int t, int res)  {
     message->tskres = res;
 }
 
-int log_operation(message_t *message, oper_t oper) { // time is lu or ld?
+int log_operation(message_t *message, oper_t oper) { // time is lu or ld? ld
     if (printf("%ld ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
                 message->rid, message->tskload, message->pid, message->tid,
                 message->tskres, OPERATIONS[oper]) < 0) {

@@ -1,11 +1,3 @@
-#include <stdlib.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
 #include "./threads.h"
 #include "./utils.h"
 
@@ -128,9 +120,6 @@ void* thread_entry(void *arg) {
         free(private_fifo_path);
         return NULL;
     }
-
-    // printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
-    // printf("%s\n", private_fifo_path); // debug
 
     
     // Client res is always -1

@@ -1,7 +1,14 @@
 #ifndef SRC_THREADS_H_
 #define SRC_THREADS_H_
 
+#include <stdlib.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "./utils.h"
 
 extern pthread_mutex_t LOCK_IDENTIFIER;
