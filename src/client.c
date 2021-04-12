@@ -12,7 +12,7 @@
 
 
 int main_cycle(time_t end_time, int fd_public_fifo) {
-    while (time(NULL) < end_time || !closed) {
+    while (time(NULL) < end_time && !closed) {
         pthread_t tid;
         // should we have mutex here? // I think not because this code is only run by the main thread
    /*if (pthread_mutex_lock(&LOCK_PUBLIC_FIFO) != 0) { // TODO check if mutexattr should not be NULL!!
@@ -126,6 +126,7 @@ int destroy_mutexs() {
 
 int main(int argc, char *argv[]) {
     time_t start_time = time(NULL);
+    closed=0;
 
     RAND_R_SEED = time(NULL);
     int nsecs;
