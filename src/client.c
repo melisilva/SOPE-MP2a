@@ -25,11 +25,11 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
             return 1;
         }
 
-        if (pthread_detach(tid) != 0) {
-            // TODO with this uncommented it's called allways with the same thread
-            // maybe save all the tid an after this while loop, loop over the tid with .join()
-            return 1;
-        }
+        // if (pthread_detach(tid) != 0) {
+        //     // TODO with this uncommented it's called allways with the same thread
+        //     // maybe save all the tid an after this while loop, loop over the tid with .join()
+        //     return 1;
+        // }
 
        /*if (pthread_mutex_unlock(&LOCK_PUBLIC_FIFO) != 0) {
         perror("");
@@ -127,7 +127,7 @@ int destroy_mutexs() {
 int main(int argc, char *argv[]) {
     time_t start_time = time(NULL);
 
-    srand(time(NULL));
+    RAND_R_SEED = time(NULL);
     int nsecs;
     int fd_public_fifo;
 

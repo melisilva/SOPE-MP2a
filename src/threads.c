@@ -12,6 +12,7 @@
 pthread_mutex_t LOCK_IDENTIFIER;
 pthread_mutex_t LOCK_PUBLIC_FIFO;
 pthread_mutex_t LOCK_RAND;
+unsigned int RAND_R_SEED;
 
 
 int get_i(int *res) {
@@ -35,7 +36,7 @@ int get_rand(int *res) {
         return 1;
     }
 
-    *res = rand();
+    *res = rand_r(&RAND_R_SEED);
 
     if (pthread_mutex_unlock(&LOCK_RAND) != 0) {
         return 1;
