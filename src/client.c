@@ -73,6 +73,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         }
     }
 
+    free(tids);
     return 0;
 }
 

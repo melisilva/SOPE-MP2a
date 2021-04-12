@@ -14,7 +14,7 @@ infer:
 # Valgrind calls may be adjusted (in the way it calls our program)
 
 valgrind: c
-	valgrind -q --gen-suppressions=yes --leak-check=full --show-leak-kinds=all --verbose ./c > /dev/null
+	valgrind -q --gen-suppressions=yes --leak-check=full --show-leak-kinds=all --verbose ./c -t 3 /tmp/foo > /dev/null
 
 valgrindf: c
-	valgrind -q --gen-suppressions=yes --leak-check=full --show-leak-kinds=all --verbose --log-file=valgrind-out ./c > /dev/null
+	valgrind -q --gen-suppressions=yes --leak-check=full --show-leak-kinds=all --verbose --log-file=valgrind-out ./c -t 3 /tmp/foo > /dev/null
