@@ -1,181 +1,193 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <pthread.h>
+#include <stdio.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pthread.h>
 
-#include "./utils.h"
 #include "./threads.h"
+#include "./utils.h"
+
+pthread_mutex_t LOCK_IDENTIFIER;
+pthread_mutex_t LOCK_PUBLIC_FIFO;
+pthread_mutex_t LOCK_RAND;
+unsigned int RAND_R_SEED;
 
 
-int main_cycle(time_t end_time, int fd_public_fifo) {
-    size_t size_tids = 1000;
-    pthread_t *tids = malloc(size_tids);
-    size_t i = 0;
-    while (time(NULL) < end_time && !closed) {
-        // should we have mutex here? // I think not because this code is only run by the main thread
-   /*if (pthread_mutex_lock(&LOCK_PUBLIC_FIFO) != 0) { // TODO check if mutexattr should not be NULL!!
-        perror("");
-        return 1;    
-    }*/
-        
-        if (i == size_tids) {
-            size_tids += 100;
-            tids = realloc(tids, size_tids);
-        }
-
-        // create thread
-        if (pthread_create(&tids[i++], NULL, thread_entry,
-                            (void*)&fd_public_fifo) != 0) {
-            return 1;
-        }
-
-         if (pthread_detach(tid) != 0) {
-        //     // TODO with this uncommented it's called allways with the same thread
-        //     // maybe save all the tid an after this while loop, loop over the tid with .join()
-            return 1;
-        }
-
-       /*if (pthread_mutex_unlock(&LOCK_PUBLIC_FIFO) != 0) {
-        perror("");
-        return 1;  
-       }*/
-
-        // wait x ms to send another request
-        int rand_num;
-        if (get_rand(&rand_num) != 0)
-            return 1;
-
-        if (usleep((100+rand_num%10)*1000) == -1) {
-            /*tried with rand()%10 +1 but the intervals where very lil
-            for nsecs=2-->rand()%10 + 1 produced 169 requests 
-            for nsecs=2-->10+rand()%5 produced 106 requests*/
-            return 1;
-        }
+int get_i(int *res) {
+    if (pthread_mutex_lock(&LOCK_IDENTIFIER) != 0) {
+        return 1;
     }
 
-    if (time(NULL) >= end_time) { /* "após o prazo de funcionamento especificado pelo utilizador, o Cliente deve terminar
-                                      a execução fazendo com que os threads em espera de resposta desistam mas não
-                                      sem antes garantir que todos os recursos tomados ao sistema são libertados."
-                                    */
-        for (size_t j = 0; j < i; j++) {
-            pthread_cancel(tids[j]);
-        }
+    static int i = 0;
+    *res = ++i;
+
+    if (pthread_mutex_unlock(&LOCK_IDENTIFIER) != 0) {
+        return 1;
     }
+
+    return 0;
+}
+
+
+int get_rand(int *res) {
+    if (pthread_mutex_lock(&LOCK_RAND) != 0) {
+        return 1;
+    }
+
+    *res = rand_r(&RAND_R_SEED);
+
+    if (pthread_mutex_unlock(&LOCK_RAND) != 0) {
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message) {
+    if (pthread_mutex_lock(&LOCK_PUBLIC_FIFO) != 0) {
+        return 1;
+    }
+
+    int n = write(fd_public_fifo, &message, sizeof(message_t));
+
+    if (n < 0) {
+        perror("Couldn't write to public FIFO\n");
+        return 1;
+    }
+
+    if (pthread_mutex_unlock(&LOCK_PUBLIC_FIFO) != 0) {
+        return 1;
+    }
+
+    return 0;
+}
+
+
+void thread_handler_clean_up(void *argsp) {
+    args_t args = *(args_t *)argsp;
+
+    log_operation(&args.message, GAVUP); // no need for error checking
     
-    // needs to call _join also for the canceled because: "Cancel THREAD immediately or at the next possibility."
-    for (size_t j = 0; j < i; j++) {
-        if (pthread_join(tids[j], NULL) != 0) {
-            // maybe better not to return on error since all threads must join
+    if (args.fd_private_fifo != 0) {
+        close(args.fd_private_fifo);
+
+        if (args.private_fifo_path != NULL) {
+            unlink(args.private_fifo_path);
         }
     }
 
-    return 0;
-}
-
-int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo) {
-    if (argc != 4) {
-        fprintf(stderr, "Invalid number of arguments.\n");
-        return 1;
+    if (args.private_fifo_path != NULL) {
+        free(args.private_fifo_path);
     }
-
-    if (strcmp(argv[1], "-t")) {
-        // id argv[1] != "-t"
-        fprintf(stderr, "Expected -t parameter not found.\n");
-        return 1;
-    }
-
-    char *end;
-    *nsecs = strtol(argv[2], &end, 10);
-    if (argv[2] == end) {
-        fprintf(stderr, "Invalid number of seconds.\n");
-        return 1;
-    }
-
-    if ((*fd_public_fifo = open(argv[3], O_WRONLY)) == -1) {
-        fprintf(stderr, "No public pipe found with given path.\n");
-        return 1;
-    }
-
-    return 0;
 }
 
 
-int init_mutexs() {
+void* thread_entry(void *arg) {
+    int fd_public_fifo = *(int *) arg;
 
-    if (pthread_mutex_init(&LOCK_IDENTIFIER, NULL) != 0) {
-        // TODO check if mutexattr should not be NULL!!
-        perror("");
-        return 1;    
+    int i;
+    if (get_i(&i) < 0) {
+        return NULL;
     }
 
-    if (pthread_mutex_init(&LOCK_PUBLIC_FIFO, NULL) != 0) {
-        // TODO check if mutexattr should not be NULL!!
-        perror("");
-        return 1;
+    int rand_num;
+    if (get_rand(&rand_num) != 0) {
+        return NULL;
     }
 
-    if (pthread_mutex_init(&LOCK_RAND, NULL) != 0) {
-        // TODO check if mutexattr should not be NULL!!
-        perror("");
-        return 1;
+    int task_weight = (rand_num % 9) + 1;
+
+    message_t message;
+    message_builder(&message, i, task_weight, -1);
+
+    char *private_fifo_path = NULL;
+    int path_size = snprintf(private_fifo_path, 0, "/tmp/%d.%lu",
+                                getpid(), pthread_self()) + 1;
+
+    if (path_size == -1) {
+        return NULL;
     }
 
-    return 0;
-}
-
-
-int destroy_mutexs() {
-
-    if (pthread_mutex_destroy(&LOCK_IDENTIFIER) != 0) {
-        perror("");
-        return 1;
+    private_fifo_path = malloc(path_size);
+    int fd_private_fifo = 0;
+    
+    args_t args = {.message = message, .fd_private_fifo = fd_private_fifo, .private_fifo_path = private_fifo_path};
+    pthread_cleanup_push(thread_handler_clean_up, (void *)&args); // TODO maybe no need to call so many things in the if guards if instead of return NULL; pthread_exit() because it calls thread_handler in that case
+    
+    if (snprintf(private_fifo_path, path_size, "/tmp/%d.%lu",
+        getpid(), pthread_self()) < 0 ) {
+        free(private_fifo_path);
+        return NULL;
     }
 
-    if (pthread_mutex_destroy(&LOCK_PUBLIC_FIFO) != 0) {
-        perror("");
-        return 1;
+    if (mkfifo(private_fifo_path, 0660) != 0) {
+        // TODO check the right perms to be "private"
+        free(private_fifo_path);
+        return NULL;
     }
 
-    if (pthread_mutex_destroy(&LOCK_RAND) != 0) {
-        perror("");
-        return 1;
+    // printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
+    // printf("%s\n", private_fifo_path); // debug
+
+    
+    // Client res is always -1
+
+    if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0) {
+        free(private_fifo_path);
+        return NULL;
     }
 
-    return 0;
-}
-
-
-int main(int argc, char *argv[]) {
-    time_t start_time = time(NULL);
-    closed=0;
-
-    RAND_R_SEED = start_time;
-    int nsecs;
-    int fd_public_fifo;
-
-    if (input_check(argc, argv, &nsecs, &fd_public_fifo) != 0) {
-        return 1;
+    if (log_operation(&message, IWANT) != 0) {
+        free(private_fifo_path);
+        return NULL;
     }
 
-    if (init_mutexs() != 0) {
-        return 1;
+    // printf("fg\n");
+    if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1) {
+        printf("DIDN'T OPEN\n");
+        free(private_fifo_path);
+        return NULL;
     }
 
-    time_t end_time = start_time + nsecs;
-    if (main_cycle(end_time, fd_public_fifo) != 0) {
-        return 1;
+    //printf("OPENED.\n");
+    message_t message_received;
+
+    int n = read(fd_private_fifo, &message_received, sizeof(message_t));
+
+    if (n < 0) {
+        perror("Couldn't read private FIFO");
+        free(private_fifo_path);
+        close(fd_private_fifo);
+        unlink(private_fifo_path);
+        return NULL;
+    } else if (n > 0) {
+        if (message_received.tskres != -1) {
+            // server's res==-1 if it's closed
+            if (log_operation(&message, GOTRS) != 0) {
+                // check if this is the right message to write
+                free(private_fifo_path);
+                close(fd_private_fifo);
+                unlink(private_fifo_path);
+                return NULL;
+            }
+        } else {
+            // we need to stop making new request threads
+            closed = 1;
+            if (log_operation(&message, CLOSD) != 0) {
+                free(private_fifo_path);
+                close(fd_private_fifo);
+                unlink(private_fifo_path);
+                return NULL;
+            }
+        }
     }
 
-    if (destroy_mutexs() != 0) {
-        return 1;
-    }
-
-    close(fd_public_fifo);
-    printf("we're closed\n");
-
-    return 0;
+    close(fd_private_fifo);
+    unlink(private_fifo_path);
+    free(private_fifo_path);
+    pthread_cleanup_pop(0);
+    return NULL;
 }
