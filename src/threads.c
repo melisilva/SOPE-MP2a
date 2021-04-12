@@ -66,6 +66,25 @@ int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message) {
 }
 
 
+void thread_handler_clean_up(void *argsp) {
+    args_t args = *(args_t *)argsp;
+
+    log_operation(&args.message, GAVUP); // no need for error checking
+    
+    if (args.fd_private_fifo != 0) {
+        close(args.fd_private_fifo);
+
+        if (args.private_fifo_path != NULL) {
+            unlink(args.private_fifo_path);
+        }
+    }
+
+    if (args.private_fifo_path != NULL) {
+        free(args.private_fifo_path);
+    }
+}
+
+
 void* thread_entry(void *arg) {
     int fd_public_fifo = *(int *) arg;
 
@@ -80,6 +99,10 @@ void* thread_entry(void *arg) {
     }
 
     int task_weight = (rand_num % 9) + 1;
+
+    message_t message;
+    message_builder(&message, i, task_weight, -1);
+
     char *private_fifo_path = NULL;
     int path_size = snprintf(private_fifo_path, 0, "/tmp/%d.%lu",
                                 getpid(), pthread_self()) + 1;
@@ -89,7 +112,11 @@ void* thread_entry(void *arg) {
     }
 
     private_fifo_path = malloc(path_size);
-
+    int fd_private_fifo = 0;
+    
+    args_t args = {.message = message, .fd_private_fifo = fd_private_fifo, .private_fifo_path = private_fifo_path};
+    pthread_cleanup_push(thread_handler_clean_up, (void *)&args); // TODO maybe no need to call so many things in the if guards if instead of return NULL; pthread_exit() because it calls thread_handler in that case
+    
     if (snprintf(private_fifo_path, path_size, "/tmp/%d.%lu",
         getpid(), pthread_self()) < 0 ) {
         free(private_fifo_path);
@@ -105,9 +132,7 @@ void* thread_entry(void *arg) {
     // printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
     // printf("%s\n", private_fifo_path); // debug
 
-    int fd_private_fifo = 0;
-    message_t message;
-    message_builder(&message, i, task_weight, -1);
+    
     // Client res is always -1
 
     if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0) {
@@ -121,14 +146,13 @@ void* thread_entry(void *arg) {
     }
 
     // printf("fg\n");
-
     if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1) {
         printf("DIDN'T OPEN\n");
         free(private_fifo_path);
         return NULL;
     }
 
-    printf("OPENED.\n");
+    //printf("OPENED.\n");
     message_t message_received;
 
     int n = read(fd_private_fifo, &message_received, sizeof(message_t));
@@ -159,18 +183,11 @@ void* thread_entry(void *arg) {
                 return NULL;
             }
         }
-    } else {
-        if (log_operation(&message, GAVUP) != 0) {
-            // check if this is the right message to write
-            free(private_fifo_path);
-            close(fd_private_fifo);
-            unlink(private_fifo_path);
-            return NULL;
-        }  
     }
 
     close(fd_private_fifo);
     unlink(private_fifo_path);
     free(private_fifo_path);
+    pthread_cleanup_pop(0);
     return NULL;
 }

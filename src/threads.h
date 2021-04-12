@@ -9,6 +9,11 @@ extern pthread_mutex_t LOCK_PUBLIC_FIFO;
 extern pthread_mutex_t LOCK_RAND;
 extern unsigned int RAND_R_SEED;
 
+typedef struct args {
+    message_t message;
+    char *private_fifo_path;
+    int fd_private_fifo;
+} args_t;
 
 int closed;
 int get_i(int *i);
