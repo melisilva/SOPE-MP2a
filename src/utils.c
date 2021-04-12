@@ -18,7 +18,7 @@ void message_builder(message_t *message, int i, int t, int res)  {
     message->tskres = res;
 }
 
-int log_operation(message_t *message, oper_t oper) {
+int log_operation(message_t *message, oper_t oper) { // time is lu or ld?
     if (printf("%ld ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
                 message->rid, message->tskload, message->pid, message->tid,
                 message->tskres, OPERATIONS[oper]) < 0) {

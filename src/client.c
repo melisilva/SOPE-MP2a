@@ -14,7 +14,7 @@
 int main_cycle(time_t end_time, int fd_public_fifo) {
     while (time(NULL) < end_time || !closed) {
         pthread_t tid;
-        // should we have mutex here?
+        // should we have mutex here? // I think not because this code is only run by the main thread
    /*if (pthread_mutex_lock(&LOCK_PUBLIC_FIFO) != 0) { // TODO check if mutexattr should not be NULL!!
         perror("");
         return 1;    
@@ -37,7 +37,11 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
        }*/
 
         // wait x ms to send another request
-        if (usleep((100+rand()%10)*1000) == -1) {
+        int rand_num;
+        if (get_rand(&rand_num) != 0)
+            return 1;
+
+        if (usleep((100+rand_num%10)*1000) == -1) {
             /*tried with rand()%10 +1 but the intervals where very lil
             for nsecs=2-->rand()%10 + 1 produced 169 requests 
             for nsecs=2-->10+rand()%5 produced 106 requests*/
@@ -75,19 +79,8 @@ int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo) {
 }
 
 
-int main(int argc, char *argv[]) {
-    time_t start_time = time(NULL);
+int init_mutexs() {
 
-    srand(time(NULL));
-    int nsecs;
-    int fd_public_fifo;
-
-    if (input_check(argc, argv, &nsecs, &fd_public_fifo) != 0) {
-        return 1;
-    }
-
-    // TODO maybe create a function to init all the mutex we will need
-    // and other to destroy them
     if (pthread_mutex_init(&LOCK_IDENTIFIER, NULL) != 0) {
         // TODO check if mutexattr should not be NULL!!
         perror("");
@@ -100,10 +93,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    time_t end_time = start_time + nsecs;
-    if (main_cycle(end_time, fd_public_fifo) != 0) {
+    if (pthread_mutex_init(&LOCK_RAND, NULL) != 0) {
+        // TODO check if mutexattr should not be NULL!!
+        perror("");
         return 1;
     }
+
+    return 0;
+}
+
+
+int destroy_mutexs() {
 
     if (pthread_mutex_destroy(&LOCK_IDENTIFIER) != 0) {
         perror("");
@@ -112,6 +112,39 @@ int main(int argc, char *argv[]) {
 
     if (pthread_mutex_destroy(&LOCK_PUBLIC_FIFO) != 0) {
         perror("");
+        return 1;
+    }
+
+    if (pthread_mutex_destroy(&LOCK_RAND) != 0) {
+        perror("");
+        return 1;
+    }
+
+    return 0;
+}
+
+
+int main(int argc, char *argv[]) {
+    time_t start_time = time(NULL);
+
+    srand(time(NULL));
+    int nsecs;
+    int fd_public_fifo;
+
+    if (input_check(argc, argv, &nsecs, &fd_public_fifo) != 0) {
+        return 1;
+    }
+
+    if (init_mutexs() != 0) {
+        return 1;
+    }
+
+    time_t end_time = start_time + nsecs;
+    if (main_cycle(end_time, fd_public_fifo) != 0) {
+        return 1;
+    }
+
+    if (destroy_mutexs() != 0) {
         return 1;
     }
 

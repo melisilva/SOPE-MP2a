@@ -11,6 +11,7 @@
 
 pthread_mutex_t LOCK_IDENTIFIER;
 pthread_mutex_t LOCK_PUBLIC_FIFO;
+pthread_mutex_t LOCK_RAND;
 
 
 int get_i(int *res) {
@@ -27,6 +28,22 @@ int get_i(int *res) {
 
     return 0;
 }
+
+
+int get_rand(int *res) {
+    if (pthread_mutex_lock(&LOCK_RAND) != 0) {
+        return 1;
+    }
+
+    *res = rand_r(time(NULL));
+
+    if (pthread_mutex_unlock(&LOCK_RAND) != 0) {
+        return 1;
+    }
+
+    return 0;
+}
+
 
 int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message) {
     if (pthread_mutex_lock(&LOCK_PUBLIC_FIFO) != 0) {
@@ -56,7 +73,12 @@ void* thread_entry(void *arg) {
         return NULL;
     }
 
-    int task_weight = (rand() % 9) + 1;
+    int rand_num;
+    if (get_rand(&rand_num) != 0) {
+        return NULL;
+    }
+
+    int task_weight = (rand_num % 9) + 1;
     char *private_fifo_path = NULL;
     int path_size = snprintf(private_fifo_path, 0, "/tmp/%d.%lu",
                                 getpid(), pthread_self()) + 1;
