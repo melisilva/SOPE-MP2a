@@ -12,12 +12,16 @@
 
 int main_cycle(time_t end_time, int fd_public_fifo) {
     size_t size_tids = 1000;
-    pthread_t *tids = malloc(size_tids);
+    pthread_t *tids = malloc(size_tids * sizeof(pthread_t));
     size_t i = 0;
     while (time(NULL) < end_time && !closed) {
-        if (i == size_tids) {
-            size_tids += 100;
-            tids = realloc(tids, size_tids);
+
+        printf("------------------------------%ld %ld\n", i, i * sizeof(pthread_t));
+
+        if (i == size_tids - 1) {
+            size_tids += 1000;
+            printf("Tids size %ld\n", size_tids);
+            tids = realloc(tids, size_tids * sizeof(pthread_t));
         }
 
         // create thread
@@ -31,7 +35,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         if (get_rand(&rand_num) != 0)
             return 1;
 
-        if (usleep((100+rand_num%10)*1000) == -1) {
+        if (usleep((1+rand_num%10)*1000) == -1) {
             /*tried with rand()%10 +1 but the intervals where very lil
             for nsecs=2-->rand()%10 + 1 produced 169 requests 
             for nsecs=2-->10+rand()%5 produced 106 requests*/
@@ -50,6 +54,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
     }
     
     // needs to call _join also for the canceled because: "Cancel THREAD immediately or at the next possibility."
+    
     for (size_t j = 0; j < i; j++) {
         if (pthread_join(tids[j], NULL) != 0) {
             // maybe better not to return on error since all threads must join
