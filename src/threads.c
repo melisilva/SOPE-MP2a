@@ -1,3 +1,11 @@
+#include <stdlib.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "./threads.h"
 #include "./utils.h"
 
@@ -68,11 +76,14 @@ void thread_handler_clean_up(void *argsp) {
 
         if (args.private_fifo_path != NULL) {
             unlink(args.private_fifo_path);
+            //perror("sup\n");
         }
     }
 
     if (args.private_fifo_path != NULL) {
+        //perror("Three lil birds\n");
         free(args.private_fifo_path);
+        //perror("error\n");
     }
 }
 
@@ -112,25 +123,32 @@ void* thread_entry(void *arg) {
     if (snprintf(private_fifo_path, path_size, "/tmp/%d.%lu",
         getpid(), pthread_self()) < 0 ) {
         free(private_fifo_path);
+        //perror("peek a boo\n");
         return NULL;
     }
 
     if (mkfifo(private_fifo_path, 0660) != 0) {
         // TODO check the right perms to be "private"
         free(private_fifo_path);
+        //perror("peek a boo2\n");
         return NULL;
     }
+
+    // printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
+    // printf("%s\n", private_fifo_path); // debug
 
     
     // Client res is always -1
 
     if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0) {
         free(private_fifo_path);
+        //perror("peek a boo3\n");
         return NULL;
     }
 
     if (log_operation(&message, IWANT) != 0) {
         free(private_fifo_path);
+        //perror("peek a boo4\n");
         return NULL;
     }
 
@@ -138,6 +156,7 @@ void* thread_entry(void *arg) {
     if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1) {
         printf("DIDN'T OPEN\n");
         free(private_fifo_path);
+        //perror("peek a boo5\n");
         return NULL;
     }
 
@@ -160,6 +179,7 @@ void* thread_entry(void *arg) {
                 close(fd_private_fifo);
                 unlink(private_fifo_path);
                 free(private_fifo_path);
+                //perror("Peeak\n");
                 return NULL;
             }
         } else {
@@ -169,6 +189,7 @@ void* thread_entry(void *arg) {
                 close(fd_private_fifo);
                 unlink(private_fifo_path);
                 free(private_fifo_path);
+                //perror("Peeak2\n");
                 return NULL;
             }
         }
@@ -177,6 +198,7 @@ void* thread_entry(void *arg) {
     close(fd_private_fifo);
     unlink(private_fifo_path);
     free(private_fifo_path);
+    //perror("Peeak3\n");
     pthread_cleanup_pop(0);
     return NULL;
 }

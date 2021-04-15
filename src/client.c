@@ -31,7 +31,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         if (get_rand(&rand_num) != 0)
             return 1;
 
-        if (usleep((1+rand_num%10)*1000) == -1) {
+        if (usleep((100+rand_num%10)*1000) == -1) {
             /*tried with rand()%10 +1 but the intervals where very lil
             for nsecs=2-->rand()%10 + 1 produced 169 requests 
             for nsecs=2-->10+rand()%5 produced 106 requests*/
@@ -43,6 +43,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
                                       a execução fazendo com que os threads em espera de resposta desistam mas não
                                       sem antes garantir que todos os recursos tomados ao sistema são libertados."
                                     */
+        //printf("Cancel\n");
         for (size_t j = 0; j < i; j++) {
             pthread_cancel(tids[j]);
         }
@@ -55,7 +56,9 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         }
     }
 
+    //perror("fkekrkfje\n");
     free(tids);
+    //perror("hrie\n");
     return 0;
 }
 
@@ -158,7 +161,7 @@ int main(int argc, char *argv[]) {
     }
 
     close(fd_public_fifo);
-    printf("we're closed\n");
+    //printf("we're closed\n");
 
     return 0;
 }
