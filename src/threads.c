@@ -174,6 +174,7 @@ void* thread_entry(void *arg) {
     } else if (n > 0) {
         if (message_received.tskres != -1) {
             // server's res==-1 if it's closed
+            message_builder(&message, i, task_weight, message_received.tskres);
             if (log_operation(&message, GOTRS) != 0) {
                 // check if this is the right message to write
                 close(fd_private_fifo);
