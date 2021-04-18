@@ -45,7 +45,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
                                       a execução fazendo com que os threads em espera de resposta desistam mas não
                                       sem antes garantir que todos os recursos tomados ao sistema são libertados."
                                     */
-        //printf("Cancel\n");
+       
         for (size_t j = 0; j < i; j++) {
             pthread_cancel(tids[j]);
         }
@@ -59,9 +59,8 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         }
     }
 
-    //perror("fkekrkfje\n");
+    
     free(tids);
-    //perror("hrie\n");
     return 0;
 }
 
