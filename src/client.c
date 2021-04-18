@@ -12,12 +12,14 @@
 
 int main_cycle(time_t end_time, int fd_public_fifo) {
     size_t size_tids = 1000;
-    pthread_t *tids = malloc(size_tids*sizeof(pthread_t));
+    pthread_t *tids = malloc(size_tids * sizeof(pthread_t));
     size_t i = 0;
     while (time(NULL) < end_time && !closed) {
-        if (i == size_tids-1) {
+
+
+        if (i == size_tids - 1) {
             size_tids += 1000;
-            tids = realloc(tids, size_tids);
+            tids = realloc(tids, size_tids * sizeof(pthread_t));
         }
 
         // create thread
@@ -31,7 +33,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         if (get_rand(&rand_num) != 0)
             return 1;
 
-        if (usleep((1+rand_num%10)*1000) == -1) {
+        if (usleep((100+rand_num%10)*1000) == -1) {
             /*tried with rand()%10 +1 but the intervals where very lil
             for nsecs=2-->rand()%10 + 1 produced 169 requests 
             for nsecs=2-->10+rand()%5 produced 106 requests*/
@@ -50,6 +52,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
     }
     
     // needs to call _join also for the canceled because: "Cancel THREAD immediately or at the next possibility."
+    
     for (size_t j = 0; j < i; j++) {
         if (pthread_join(tids[j], NULL) != 0) {
             // maybe better not to return on error since all threads must join
@@ -62,7 +65,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
     return 0;
 }
 
-int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo) {
+int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo,time_t start_time,time_t *end_time) {
     if (argc != 4) {
         fprintf(stderr, "Invalid number of arguments.\n");
         return 1;
@@ -81,10 +84,24 @@ int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo) {
         return 1;
     }
 
+    int opened=1;
+
     if ((*fd_public_fifo = open(argv[3], O_WRONLY)) == -1) {
+        time_t *end_time = &start_time + *nsecs;
+        opened=0;
+        while(start_time<*end_time && !opened){
+            if ((*fd_public_fifo = open(argv[3], O_WRONLY)) != -1){
+                opened=1;
+            }
+        }
+    }
+    
+
+    if(opened==0){
         fprintf(stderr, "No public pipe found with given path.\n");
         return 1;
     }
+    
 
     return 0;
 }
@@ -142,8 +159,9 @@ int main(int argc, char *argv[]) {
     RAND_R_SEED = start_time;
     int nsecs;
     int fd_public_fifo;
-
-    if (input_check(argc, argv, &nsecs, &fd_public_fifo) != 0) {
+    time_t end_time;
+    
+    if (input_check(argc, argv, &nsecs, &fd_public_fifo,start_time,&end_time) != 0) {
         return 1;
     }
 
@@ -151,7 +169,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    time_t end_time = start_time + nsecs;
+    //time_t end_time = start_time + nsecs;
     if (main_cycle(end_time, fd_public_fifo) != 0) {
         return 1;
     }
