@@ -14,7 +14,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
     size_t size_tids = 1000;
     pthread_t *tids = malloc(size_tids * sizeof(pthread_t));
     size_t i = 0;
-    while (time(NULL) < end_time && !closed) {
+    while ((time(NULL) < end_time) && !closed) {
 
 
         if (i == size_tids - 1) {
@@ -87,7 +87,7 @@ int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo,time_t s
     int opened=1;
     if ((*fd_public_fifo = open(argv[3], O_WRONLY)) == -1) {
         opened=0;
-        while(start_time<*end_time && !opened){
+        while((time(NULL) < *end_time) && !opened){
             if ((*fd_public_fifo = open(argv[3], O_WRONLY)) != -1){
                 opened=1;
             }
