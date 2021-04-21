@@ -33,7 +33,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         if (get_rand(&rand_num) != 0)
             return 1;
 
-        if (usleep((100+rand_num%10)*1000) == -1) {
+        if (usleep((1+rand_num%10)*1000) == -1) {
             /*tried with rand()%10 +1 but the intervals where very lil
             for nsecs=2-->rand()%10 + 1 produced 169 requests 
             for nsecs=2-->10+rand()%5 produced 106 requests*/
@@ -78,15 +78,14 @@ int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo,time_t s
 
     char *end;
     *nsecs = strtol(argv[2], &end, 10);
+    *end_time = (time_t) (&start_time + *nsecs);
     if (argv[2] == end) {
         fprintf(stderr, "Invalid number of seconds.\n");
         return 1;
     }
 
     int opened=1;
-
     if ((*fd_public_fifo = open(argv[3], O_WRONLY)) == -1) {
-        time_t *end_time = &start_time + *nsecs;
         opened=0;
         while(start_time<*end_time && !opened){
             if ((*fd_public_fifo = open(argv[3], O_WRONLY)) != -1){
