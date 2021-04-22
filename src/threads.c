@@ -14,7 +14,6 @@ pthread_mutex_t LOCK_PUBLIC_FIFO;
 pthread_mutex_t LOCK_RAND;
 unsigned int RAND_R_SEED;
 
-
 int get_i(int *res) {
     if (pthread_mutex_lock(&LOCK_IDENTIFIER) != 0) {
         return 1;
@@ -69,15 +68,17 @@ int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message) {
 void thread_handler_clean_up(void *argsp) {
     args_t args = *(args_t *)argsp;
 
-    log_operation(&args.message, GAVUP); // no need for error checking
-    
-    if (args.fd_private_fifo != 0) {
-        close(args.fd_private_fifo);
+    if (!closed){
+        log_operation(&args.message, GAVUP); // no need for error checking
+    }
 
-        if (args.private_fifo_path != NULL) {
+    if (*(args.fd_private_fifo) != 0) {
+        close(*(args.fd_private_fifo));
+    }
+
+    if (args.private_fifo_path != NULL) {
             unlink(args.private_fifo_path);
             //perror("sup\n");
-        }
     }
 
     if (args.private_fifo_path != NULL) {
@@ -89,6 +90,7 @@ void thread_handler_clean_up(void *argsp) {
 
 
 void* thread_entry(void *arg) {
+
     int fd_public_fifo = *(int *) arg;
 
     int i;
@@ -108,7 +110,7 @@ void* thread_entry(void *arg) {
 
     char *private_fifo_path = NULL;
     int path_size = snprintf(private_fifo_path, 0, "/tmp/%d.%lu",
-                                getpid(), pthread_self()) + 1;
+                                getpid(), pthread_self()) + 1;                         
 
     if (path_size == -1) {
         return NULL;
@@ -117,15 +119,17 @@ void* thread_entry(void *arg) {
     private_fifo_path = malloc(path_size);
     int fd_private_fifo = 0;
     
-    args_t args = {.message = message, .fd_private_fifo = fd_private_fifo, .private_fifo_path = private_fifo_path};
+    args_t args = {.message = message, .fd_private_fifo = &fd_private_fifo, .private_fifo_path = private_fifo_path};
     pthread_cleanup_push(thread_handler_clean_up, (void *)&args); // TODO maybe no need to call so many things in the if guards if instead of return NULL; pthread_exit() because it calls thread_handler in that case
-    
+
     if (snprintf(private_fifo_path, path_size, "/tmp/%d.%lu",
         getpid(), pthread_self()) < 0 ) {
         free(private_fifo_path);
         //perror("peek a boo\n");
         return NULL;
     }
+
+    //sleep(1);
 
     if (mkfifo(private_fifo_path, 0660) != 0) {
         // TODO check the right perms to be "private"
@@ -195,11 +199,12 @@ void* thread_entry(void *arg) {
             }
         }
     }
-
     close(fd_private_fifo);
     unlink(private_fifo_path);
     free(private_fifo_path);
+
     //perror("Peeak3\n");
     pthread_cleanup_pop(0);
+
     return NULL;
 }

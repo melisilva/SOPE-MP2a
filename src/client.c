@@ -33,7 +33,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         if (get_rand(&rand_num) != 0)
             return 1;
 
-        if (usleep((1+rand_num%10)*1000) == -1) {
+        if (usleep((100+rand_num%10)*1000) == -1) {
             /*tried with rand()%10 +1 but the intervals where very lil
             for nsecs=2-->rand()%10 + 1 produced 169 requests 
             for nsecs=2-->10+rand()%5 produced 106 requests*/
@@ -41,14 +41,8 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         }
     }
 
-    if (time(NULL) >= end_time) { /* "após o prazo de funcionamento especificado pelo utilizador, o Cliente deve terminar
-                                      a execução fazendo com que os threads em espera de resposta desistam mas não
-                                      sem antes garantir que todos os recursos tomados ao sistema são libertados."
-                                    */
-       
-        for (size_t j = 0; j < i; j++) {
-            pthread_cancel(tids[j]);
-        }
+    for (size_t j = 0; j < i; j++) {
+        pthread_cancel(tids[j]);
     }
     
     // needs to call _join also for the canceled because: "Cancel THREAD immediately or at the next possibility."
@@ -78,7 +72,7 @@ int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo,time_t s
 
     char *end;
     *nsecs = strtol(argv[2], &end, 10);
-    *end_time = (time_t) (&start_time + *nsecs);
+    *end_time = (time_t) (start_time + *nsecs);
     if (argv[2] == end) {
         fprintf(stderr, "Invalid number of seconds.\n");
         return 1;

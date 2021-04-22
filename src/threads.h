@@ -19,7 +19,7 @@ extern unsigned int RAND_R_SEED;
 typedef struct args {
     message_t message;
     char *private_fifo_path;
-    int fd_private_fifo;
+    int *fd_private_fifo;
 } args_t;
 
 int closed;
