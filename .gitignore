@@ -2,3 +2,11 @@ c
 .vscode
 valgrind-out
 infer-out
+client_log.txt
+server_log.txt
+server_stderr.txt
+script.Unix.sh
+install.Unix.sh
+client_log.txt
+server_log.txt
+server_stderr.txt
