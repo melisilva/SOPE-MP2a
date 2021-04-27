@@ -20,6 +20,7 @@ typedef struct args {
     message_t message;
     char *private_fifo_path;
     int *fd_private_fifo;
+    int *communicated;
 } args_t;
 
 int closed;

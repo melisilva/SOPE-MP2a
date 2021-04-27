@@ -68,9 +68,9 @@ int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message) {
 void thread_handler_clean_up(void *argsp) {
     args_t args = *(args_t *)argsp;
 
-    //if (!closed){
+    if (!closed && *args.communicated == 0){
         log_operation(&args.message, GAVUP); // no need for error checking
-    //}
+    }
 
     if (*(args.fd_private_fifo) != 0) {
         close(*(args.fd_private_fifo));
@@ -118,8 +118,9 @@ void* thread_entry(void *arg) {
 
     private_fifo_path = malloc(path_size);
     int fd_private_fifo = 0;
+    int communicated = -1;
     
-    args_t args = {.message = message, .fd_private_fifo = &fd_private_fifo, .private_fifo_path = private_fifo_path};
+    args_t args = {.message = message, .fd_private_fifo = &fd_private_fifo, .private_fifo_path = private_fifo_path, .communicated = &communicated};
     pthread_cleanup_push(thread_handler_clean_up, (void *)&args); // TODO maybe no need to call so many things in the if guards if instead of return NULL; pthread_exit() because it calls thread_handler in that case
 
     if (snprintf(private_fifo_path, path_size, "/tmp/%d.%lu",
@@ -141,10 +142,11 @@ void* thread_entry(void *arg) {
     // printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
     // printf("%s\n", private_fifo_path); // debug
 
+    usleep(100000);
     
     // Client res is always -1
 
-    if (comunicate_with_server_public_fifo(fd_public_fifo, message) != 0) {
+    if ((communicated = comunicate_with_server_public_fifo(fd_public_fifo, message)) != 0) {
         free(private_fifo_path);
         //perror("peek a boo3\n");
         return NULL;
