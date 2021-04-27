@@ -8,7 +8,7 @@ c: client.c common.h
 
 # server.o: server.c common.h
 # 	gcc -Wall -c -o server.o server.c
-
+#
 # lib.o: lib.c lib.h
 # 	gcc -Wall -c -o lib.o lib.c
 

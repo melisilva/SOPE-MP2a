@@ -68,17 +68,17 @@ int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message) {
 void thread_handler_clean_up(void *argsp) {
     args_t args = *(args_t *)argsp;
 
-    if (!closed){
+    //if (!closed){
         log_operation(&args.message, GAVUP); // no need for error checking
-    }
+    //}
 
     if (*(args.fd_private_fifo) != 0) {
         close(*(args.fd_private_fifo));
     }
 
     if (args.private_fifo_path != NULL) {
-            unlink(args.private_fifo_path);
-            //perror("sup\n");
+        unlink(args.private_fifo_path);
+        //perror("sup\n");
     }
 
     if (args.private_fifo_path != NULL) {
