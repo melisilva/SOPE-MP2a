@@ -141,8 +141,6 @@ void* thread_entry(void *arg) {
 
     // printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
     // printf("%s\n", private_fifo_path); // debug
-
-    usleep(100000);
     
     // Client res is always -1
 
