@@ -107,6 +107,11 @@ void* thread_entry(void *arg) {
     }
 
     private_fifo_path = malloc(path_size);
+
+    if (private_fifo_path == NULL) {
+        return NULL;
+    }
+    
     int fd_private_fifo = 0;
     int communicated = -1;
     

@@ -13,13 +13,24 @@
 int main_cycle(time_t end_time, int fd_public_fifo) {
     size_t size_tids = 1000;
     pthread_t *tids = malloc(size_tids * sizeof(pthread_t));
+
+    if (tids == NULL) {
+        return 1;
+    }
+    
     size_t i = 0;
     while ((time(NULL) < end_time) && !closed) {
 
 
-        if (i == size_tids - 1) {
+        if (i == size_tids) {
             size_tids += 1000;
-            tids = realloc(tids, size_tids * sizeof(pthread_t));
+            pthread_t *new_tids = realloc(tids, size_tids * sizeof(pthread_t));
+
+            if (new_tids == NULL) {
+                break; // could not allocate more bytes
+            } else {
+                tids = new_tids;
+            }
         }
 
         // create thread
@@ -33,7 +44,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         if (get_rand(&rand_num) != 0)
             return 1;
 
-        if (usleep((1+rand_num%10)*1000) == -1) {
+        if (usleep((1+rand_num%10)*100) == -1) {
            return 1;
         }
     }
