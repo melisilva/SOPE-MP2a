@@ -12,7 +12,6 @@
 #include "./utils.h"
 
 extern pthread_mutex_t LOCK_IDENTIFIER;
-extern pthread_mutex_t LOCK_PUBLIC_FIFO;
 extern pthread_mutex_t LOCK_RAND;
 extern unsigned int RAND_R_SEED;
 
