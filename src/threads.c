@@ -9,6 +9,8 @@
 #include "./threads.h"
 #include "./utils.h"
 
+#define PRIVATE_PERMS 0600
+
 pthread_mutex_t LOCK_IDENTIFIER;
 pthread_mutex_t LOCK_RAND;
 unsigned int RAND_R_SEED;
@@ -118,7 +120,7 @@ void* thread_entry(void *arg) {
     }
 
 
-    if (mkfifo(private_fifo_path, 0660) != 0) {
+    if (mkfifo(private_fifo_path, PRIVATE_PERMS) != 0) {
         free(private_fifo_path);
         return NULL;
     }
