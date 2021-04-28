@@ -23,9 +23,9 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         }
 
         // create thread
-        if (pthread_create(&tids[i++], NULL, thread_entry,
-                            (void*)&fd_public_fifo) != 0) {
-            //return 1
+        if (pthread_create(&tids[i], NULL, thread_entry,
+                            (void*)&fd_public_fifo) == 0) {
+            i++; // thread was created
         }
 
         // wait x ms to send another request
