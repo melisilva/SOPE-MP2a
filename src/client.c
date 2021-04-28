@@ -107,12 +107,6 @@ int init_mutexs() {
         return 1;    
     }
 
-    if (pthread_mutex_init(&LOCK_PUBLIC_FIFO, NULL) != 0) {
-        // TODO check if mutexattr should not be NULL!!
-        perror("");
-        return 1;
-    }
-
     if (pthread_mutex_init(&LOCK_RAND, NULL) != 0) {
         // TODO check if mutexattr should not be NULL!!
         perror("");
@@ -126,11 +120,6 @@ int init_mutexs() {
 int destroy_mutexs() {
 
     if (pthread_mutex_destroy(&LOCK_IDENTIFIER) != 0) {
-        perror("");
-        return 1;
-    }
-
-    if (pthread_mutex_destroy(&LOCK_PUBLIC_FIFO) != 0) {
         perror("");
         return 1;
     }
@@ -171,7 +160,7 @@ int main(int argc, char *argv[]) {
     }
 
     close(fd_public_fifo);
-    //printf("we're closed\n");
+    printf("we're closed\n");
 
     return 0;
 }

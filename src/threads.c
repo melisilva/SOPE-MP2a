@@ -10,7 +10,6 @@
 #include "./utils.h"
 
 pthread_mutex_t LOCK_IDENTIFIER;
-pthread_mutex_t LOCK_PUBLIC_FIFO;
 pthread_mutex_t LOCK_RAND;
 unsigned int RAND_R_SEED;
 
@@ -46,18 +45,10 @@ int get_rand(int *res) {
 
 
 int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message) {
-    if (pthread_mutex_lock(&LOCK_PUBLIC_FIFO) != 0) {
-        return 1;
-    }
-
     int n = write(fd_public_fifo, &message, sizeof(message_t));
 
     if (n < 0) {
         perror("Couldn't write to public FIFO\n");
-        return 1;
-    }
-
-    if (pthread_mutex_unlock(&LOCK_PUBLIC_FIFO) != 0) {
         return 1;
     }
 
@@ -68,7 +59,7 @@ int comunicate_with_server_public_fifo(int fd_public_fifo, message_t message) {
 void thread_handler_clean_up(void *argsp) {
     args_t args = *(args_t *)argsp;
 
-    if (!closed && *args.communicated == 0){
+    if (*args.communicated == 0){
         log_operation(&args.message, GAVUP); // no need for error checking
     }
 
