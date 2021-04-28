@@ -44,7 +44,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
         if (get_rand(&rand_num) != 0)
             return 1;
 
-        if (usleep((1+rand_num%10)*100) == -1) {
+        if (usleep((1+rand_num%10)*1000) == -1) {
            return 1;
         }
     }
