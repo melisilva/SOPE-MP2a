@@ -34,10 +34,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
             return 1;
 
         if (usleep((1+rand_num%10)*1000) == -1) {
-            /*tried with rand()%10 +1 but the intervals where very lil
-            for nsecs=2-->rand()%10 + 1 produced 169 requests 
-            for nsecs=2-->10+rand()%5 produced 106 requests*/
-            return 1;
+           return 1;
         }
     }
 
@@ -102,13 +99,11 @@ int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo,time_t s
 int init_mutexs() {
 
     if (pthread_mutex_init(&LOCK_IDENTIFIER, NULL) != 0) {
-        // TODO check if mutexattr should not be NULL!!
         perror("");
         return 1;    
     }
 
     if (pthread_mutex_init(&LOCK_RAND, NULL) != 0) {
-        // TODO check if mutexattr should not be NULL!!
         perror("");
         return 1;
     }
@@ -150,7 +145,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    //time_t end_time = start_time + nsecs;
     if (main_cycle(end_time, fd_public_fifo) != 0) {
         return 1;
     }
@@ -160,7 +154,5 @@ int main(int argc, char *argv[]) {
     }
 
     close(fd_public_fifo);
-    printf("we're closed\n");
-
     return 0;
 }

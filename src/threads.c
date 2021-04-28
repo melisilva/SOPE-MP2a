@@ -60,7 +60,7 @@ void thread_handler_clean_up(void *argsp) {
     args_t args = *(args_t *)argsp;
 
     if (*args.communicated == 0){
-        log_operation(&args.message, GAVUP); // no need for error checking
+        log_operation(&args.message, GAVUP); 
     }
 
     if (*(args.fd_private_fifo) != 0) {
@@ -69,13 +69,10 @@ void thread_handler_clean_up(void *argsp) {
 
     if (args.private_fifo_path != NULL) {
         unlink(args.private_fifo_path);
-        //perror("sup\n");
     }
 
     if (args.private_fifo_path != NULL) {
-        //perror("Three lil birds\n");
         free(args.private_fifo_path);
-        //perror("error\n");
     }
 }
 
@@ -112,50 +109,37 @@ void* thread_entry(void *arg) {
     int communicated = -1;
     
     args_t args = {.message = message, .fd_private_fifo = &fd_private_fifo, .private_fifo_path = private_fifo_path, .communicated = &communicated};
-    pthread_cleanup_push(thread_handler_clean_up, (void *)&args); // TODO maybe no need to call so many things in the if guards if instead of return NULL; pthread_exit() because it calls thread_handler in that case
+    pthread_cleanup_push(thread_handler_clean_up, (void *)&args); 
 
     if (snprintf(private_fifo_path, path_size, "/tmp/%d.%lu",
         getpid(), pthread_self()) < 0 ) {
         free(private_fifo_path);
-        //perror("peek a boo\n");
         return NULL;
     }
 
-    //sleep(1);
 
     if (mkfifo(private_fifo_path, 0660) != 0) {
-        // TODO check the right perms to be "private"
         free(private_fifo_path);
-        //perror("peek a boo2\n");
         return NULL;
     }
 
-    // printf("%d, %d, %d, %ld\n", i, task_weight, fd_public_fifo, pthread_self()); // just for debug
-    // printf("%s\n", private_fifo_path); // debug
-    
-    // Client res is always -1
 
     if ((communicated = comunicate_with_server_public_fifo(fd_public_fifo, message)) != 0) {
         free(private_fifo_path);
-        //perror("peek a boo3\n");
         return NULL;
     }
 
     if (log_operation(&message, IWANT) != 0) {
         free(private_fifo_path);
-        //perror("peek a boo4\n");
         return NULL;
     }
 
-    // printf("fg\n");
     if ((fd_private_fifo = open(private_fifo_path, O_RDONLY)) == -1) {
-        printf("DIDN'T OPEN\n");
+        perror("Couldn't open private FIFO\n");
         free(private_fifo_path);
-        //perror("peek a boo5\n");
         return NULL;
     }
 
-    //printf("OPENED.\n");
     message_t message_received;
 
     int n = read(fd_private_fifo, &message_received, sizeof(message_t));
@@ -171,11 +155,9 @@ void* thread_entry(void *arg) {
             // server's res==-1 if it's closed
             message_builder(&message, i, task_weight, message_received.tskres);
             if (log_operation(&message, GOTRS) != 0) {
-                // check if this is the right message to write
                 close(fd_private_fifo);
                 unlink(private_fifo_path);
                 free(private_fifo_path);
-                //perror("Peeak\n");
                 return NULL;
             }
         } else {
@@ -185,7 +167,6 @@ void* thread_entry(void *arg) {
                 close(fd_private_fifo);
                 unlink(private_fifo_path);
                 free(private_fifo_path);
-                //perror("Peeak2\n");
                 return NULL;
             }
         }
@@ -194,7 +175,6 @@ void* thread_entry(void *arg) {
     unlink(private_fifo_path);
     free(private_fifo_path);
 
-    //perror("Peeak3\n");
     pthread_cleanup_pop(0);
 
     return NULL;
