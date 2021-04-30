@@ -69,10 +69,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
 
     
     free(tids);
-    if(ret){
-        return 1;
-    }
-    return 0;
+    return ret;
 }
 
 int input_check(int argc, char *argv[], int *nsecs, int *fd_public_fifo,time_t start_time,time_t *end_time) {
