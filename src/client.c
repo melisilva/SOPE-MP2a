@@ -28,6 +28,7 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
             pthread_t *new_tids = realloc(tids, size_tids * sizeof(pthread_t));
 
             if (new_tids == NULL) {
+                ret = 1;
                 break; // could not allocate more bytes
             } else {
                 tids = new_tids;
