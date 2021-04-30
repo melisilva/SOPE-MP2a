@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
 
     if (main_cycle(end_time, fd_public_fifo) != 0) {
         close(fd_public_fifo);
-        detroy_mutexs();
+        destroy_mutexs();
         return 1;
     }
 
