@@ -13,6 +13,7 @@
 int main_cycle(time_t end_time, int fd_public_fifo) {
     size_t size_tids = 1000;
     pthread_t *tids = malloc(size_tids * sizeof(pthread_t));
+    int ret = 0;
 
     if (tids == NULL) {
         return 1;
@@ -41,11 +42,15 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
 
         // wait x ms to send another request
         int rand_num;
-        if (get_rand(&rand_num) != 0)
-            return 1;
+        if (get_rand(&rand_num) != 0){
+            ret = 1;
+            break;
+        }
+            
 
         if (usleep((1+rand_num%10)*1000) == -1) {
-           return 1;
+           ret = 1;
+           break;
         }
     }
 
@@ -63,6 +68,9 @@ int main_cycle(time_t end_time, int fd_public_fifo) {
 
     
     free(tids);
+    if(ret){
+        return 1;
+    }
     return 0;
 }
 
@@ -153,14 +161,18 @@ int main(int argc, char *argv[]) {
     }
 
     if (init_mutexs() != 0) {
+        close(fd_public_fifo);
         return 1;
     }
 
     if (main_cycle(end_time, fd_public_fifo) != 0) {
+        close(fd_public_fifo);
+        detroy_mutexs();
         return 1;
     }
 
     if (destroy_mutexs() != 0) {
+        close(fd_public_fifo);
         return 1;
     }
 
